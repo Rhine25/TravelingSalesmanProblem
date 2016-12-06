@@ -32,6 +32,8 @@ void pushHeap(struct heap *self, struct pair values){
     }
     self->tab[self->size] = values;
     self->size ++;
+    printf("Pushed smtg : ");
+    printTab(self->tab, self->size*2, 2);
     sortHeap(self);
 }
 
@@ -72,7 +74,6 @@ int isEmptyHeap(struct heap *self){
 }
 
 /*void rearrangeHeap(struct heap *self){
-    //TODO fix not sorting,
     struct pair tmp;
     int size = self->size;
     int index = size/2;
@@ -84,22 +85,34 @@ int isEmptyHeap(struct heap *self){
         index/=2;
         size/=2;
     }
+
+    /*Autre façon
+    struct pair tmp;
+    int current = self->size-1;
+    int pere = father(current);
+    float poids_pere = self->tab[pere].elem[1];
+    float poids_fils = self->tab[current].elem[1];
+    while( poids_pere > poids_fils && current>0) {
+        int i;
+        tmp = self->tab[current];
+        self->tab[current] = self->tab[pere];
+        self->tab[pere] = tmp;
+        printf("Sorted : ");
+        printTab(self->tab, self->size*2, 2);
+        current = pere;
+        pere = father(pere);
+        poids_pere = self->tab[pere].elem[1];
+        poids_fils = self->tab[current].elem[1];
+    }
+    */
 }*/
 
-void sortHeap(struct heap *self){
-    //TODO fix not sorting,
-    struct pair tmp;
-    int size = self->size;
-    int index = size/2;
-    while(self->tab[index].elem[1] > self->tab[size].elem[1] && size>1) {
-        int i;
-        //printTab(self->tab, self->size*2, 2);
-        tmp = self->tab[size];
-        self->tab[size] = self->tab[index];
-        self->tab[index] = tmp;
-        index/=2;
-        size/=2;
-    }
+void sortHeap(struct heap *self, int size){
+
+}
+
+void tamiser(struct heap* self, int sommet, int n){
+
 }
 
 void expandHeap(struct heap *self){
@@ -112,20 +125,52 @@ void updateWeights(struct heap *self, struct graph *g, int dernierSommetParcours
     struct list list = g->listesAdjacences[dernierSommetParcours];
     int i;
     struct list_node* nodeTmp = malloc(sizeof(struct list_node));
-    for(i = 0; i<dernierSommetParcours; i++){
-        nodeTmp = searchNode(&list, i);
-        self->tab[i].elem[1] = nodeTmp->poids;
-        //sortHeap(self);
+    int last = self->size-1;
+    //int pere = father(current);
+
+    //TODO check if < ou <= self size
+    /* Jolie boucle pour si on ne trie pas
+     * for(i=0; i<=self->size; i++){
+        int sommet = self->tab[i].elem[0];
+        nodeTmp = searchNode(&list, sommet);
+        float poids = nodeTmp->poids;
+        self->tab[i].elem[1] = poids;
+        printTab(self->tab, self->size*2, 2);
+    }*/
+
+    /* Presque Utile boucle pour si on trie à chaque poids
+    for(i=0; i<=self->size; i++){
+        int sommet = self->tab[last].elem[0];
+        nodeTmp = searchNode(&list, sommet);
+        float poids = nodeTmp->poids;
+        self->tab[last].elem[1] = poids;
+        sortHeap(self);
+        printTab(self->tab, self->size*2, 2);
+    }*/
+
+    //pour tous les sommet du graphe sauf ceux mis dans le parcours
+    for(i=0; i<g->nbMaxSommets; i++){
+        int sommet = self->tab[i].elem[0];
+        nodeTmp = searchNode(&list, sommet);
+        float poids = nodeTmp->poids;
+        self->tab[i].elem[1] = poids;
+        sortHeap(self);
+        printTab(self->tab, self->size*2, 2);
     }
-    for(i=i+1; i<=self->size; i++){
-        nodeTmp = searchNode(&list, i);
-        self->tab[i-1].elem[1] = nodeTmp->poids;
-        //sortHeap(self);
-    }
-    int size = self->size;
-    int index = size/2;
 
     free(nodeTmp);
+}
+
+int father(int elem){
+    return ((elem+1) / 2) - 1;
+}
+
+int left_child(int elem){
+    right_child(elem) - 1;
+}
+
+int right_child(int elem){
+    return 2 * (elem + 1);
 }
 
 

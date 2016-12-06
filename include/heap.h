@@ -20,8 +20,12 @@ void pushHeap(struct heap *self, struct pair values);
 struct pair popHeap(struct heap *self);
 int isEmptyHeap(struct heap *self);
 //void rearrangeHeap(struct heap *self);
-void sortHeap(struct heap *self);
+void sortHeap(struct heap *self, int size);
+void tamiser(struct heap* self, int sommet, int n);
 void expandHeap(struct heap *self);
 void updateWeights(struct heap *self, struct graph *g, int dernierSommetParcours);
+int father(int elem);
+int left_child(int elem);
+int right_child(int elem);
 
 #endif //TSP_HEAP_H
