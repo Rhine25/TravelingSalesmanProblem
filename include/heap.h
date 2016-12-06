@@ -27,5 +27,6 @@ void updateWeights(struct heap *self, struct graph *g, int dernierSommetParcours
 int father(int elem);
 int left_child(int elem);
 int right_child(int elem);
+int popMin(struct list* self);
 
 #endif //TSP_HEAP_H

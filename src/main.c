@@ -7,6 +7,11 @@
 #include "../../Projet1/include/libgraphe.h"
 #include "../../Projet1/include/libliste.h"
 
+
+//TODO faire les plus proches voisins avec un tas
+//TODO debug segfault libliste liste to string
+//TODO calcul du poids du parcours pour les plus proches voisins
+
 int main(int argc, char *argv[]){
 
     /*********************Récupération des arguments*********************/
@@ -53,16 +58,15 @@ int main(int argc, char *argv[]){
     if(nbSommets < 10){
         //trouver tous les circuits, calculer leur cout, garder le meilleur
 
-        int tab[nbSommets*factorielle(nbSommets)];
+        int tab[nbSommets*factorielle(nbSommets)]; //tableau des parcours possibles
         effectue(nbSommets, tab);
-        //printTab(tab, factorielle(nbSommets)*nbSommets, nbSommets);
 
-        int couts[factorielle(nbSommets)];
-        for(i=0; i<factorielle(nbSommets); i++){
+        int couts[factorielle(nbSommets)]; //tableau des couts des parcours
+        for(i=0; i<factorielle(nbSommets); i++){ //pour chaque parcours
             int j;
             int somme = 0;
-            for(j=1; j<nbSommets-1; j++){
-                struct list_node* arete = searchNode(&graphe.listesAdjacences[tab[i*nbSommets+j]], tab[i*nbSommets+j+1]);
+            for(j=1; j<nbSommets-1; j++){ //
+                struct list_node* arete = searchNode(&graphe.listesAdjacences[tab[i*nbSommets+j]], tab[i*nbSommets+j+1]); //
                 somme += arete->poids;
             }
             couts[i] = somme;
@@ -83,38 +87,66 @@ int main(int argc, char *argv[]){
 
     /*********************L'algorithme du plus court chemin*****************************/
 
-    struct heap tas = createHeap();
+    //struct heap tas = createHeap();
+    struct list liste = createList();
     int parcours[nbSommets];
     int parcoursCourant = 1;
 
     //on commence par le sommet 0
     parcours[0] = 0;
 
-    int max_weight = max(&graphe.listesAdjacences[0], graphe.nbMaxSommets);
-    max_weight ++;
-    //on ajoute les sommets au tas avec leur poids en partant de 0
-    struct list suivants = graphe.listesAdjacences[0];
-    struct list_node* nodeTmp = malloc(sizeof(struct list_node));
-    nodeTmp = suivants.first;
-    while(nodeTmp ->next != NULL){
-        float poids = nodeTmp->poids;
-        struct pair p = createPair(i, poids);
-        pushHeap(&tas, p);
+    //on ajoute les sommets au tas
+    for(i=1; i<nbSommets; i++){
+        //struct pair p = createPair(i, 0);
+        //pushHeap(&tas, p);
+        struct list list = graphe.listesAdjacences[0];
+        struct list_node* nodeTmp;
+        nodeTmp = searchNode(&list, i);
+        addNode(&liste,i,nodeTmp->poids);
     }
-    free(nodeTmp);
 
-    printTab(tas.tab, tas.size*2, 2);
+    printf("Ma belle liste vierge : ");
+    printf(listToString(&liste));
+
+    //printTab(tas.tab, tas.size*2, 2);
 
     //on met à jour les poids pour accéder aux sommets
-    updateWeights(&tas, &graphe, 0);
+    //updateWeights(&tas, &graphe, 0);
+
+    //printTab(tas.tab, tas.size*2, 2);
+
+    //sortHeap(&tas, tas.size);
 
     //printTab(tas.tab, tas.size*2, 2);
 
     //on fait le parcours
-    while(!isEmptyHeap(&tas)){
+    /*while(!isEmptyHeap(&tas)){
         struct pair p = popHeap(&tas);
         parcours[parcoursCourant] = p.elem[0];
         parcoursCourant ++;
+    }*/
+
+    while(!isEmptyList(&liste)){
+        parcours[parcoursCourant] = popMin(&liste);
+        //printf("Popped min : ");
+        //printf(listToString(&liste));
+        printTab(parcours, parcoursCourant+1, 1);
+
+        struct list list = graphe.listesAdjacences[parcours[parcoursCourant]]; //dedans ça y a POIDS intéressant
+        struct list_node* nodeTmpListe = liste.first; //parcours liste des sommets non visités
+        struct list_node* nodeTmpList = list.first; //liste des sommets depuis le dernier sommet visité
+        parcoursCourant ++;
+        //mise à jour des poids des aretes
+        while(nodeTmpListe != NULL){
+            while(nodeTmpList->state != nodeTmpListe->state && nodeTmpList != NULL){
+                nodeTmpList = nodeTmpList->next;
+            }
+            printf("Caca prout caca état : %d\n", nodeTmpList->state);
+            nodeTmpListe->poids = nodeTmpList->poids;
+            nodeTmpListe = nodeTmpListe->next;
+        }
+        //printf("New weights : ");
+        //printf(listToString(&liste));
     }
 
     printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme du plus cours chemin est : ");
@@ -208,14 +240,18 @@ void effectue(int n, int* tab) {
     arrangements(n, 0, L, t, tab);
 }
 
-float max(struct list* self, int size){
-    struct list_node* tmp = self->first;
-    float max = self->first->poids;
-    while(tmp->next != NULL){
-        if(tmp->poids > max){
-            max = tmp->poids;
+int popMin(struct list* self){
+    struct list_node* nodeParcours;
+    struct list_node* nodeMin;
+    nodeParcours = self->first;
+    nodeMin = self->first;
+    while(nodeParcours != NULL){
+        if(nodeParcours->poids < nodeMin->poids){
+            nodeMin = nodeParcours;
         }
-        tmp = tmp->next;
+        nodeParcours = nodeParcours->next;
     }
-    return max;
+    int min = nodeMin->state;
+    delNode(self, nodeMin->state);
+    return min;
 }

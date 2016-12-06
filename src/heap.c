@@ -32,9 +32,8 @@ void pushHeap(struct heap *self, struct pair values){
     }
     self->tab[self->size] = values;
     self->size ++;
-    printf("Pushed smtg : ");
-    printTab(self->tab, self->size*2, 2);
-    sortHeap(self);
+    //printf("Pushed smtg : ");
+    //printTab(self->tab, self->size*2, 2);
 }
 
 struct pair popHeap(struct heap *self){
@@ -109,15 +108,17 @@ int isEmptyHeap(struct heap *self){
 
 void sortHeap(struct heap *self, int size){
     int i;
-    for(i = size/2; i<=1; i++){
+    for(i = size/2; i>=0; i--){
         tamiser(self, i, size);
     }
-    for(i = size; i<=2; i++){
+    for(i = size; i>=1; i--){
         struct pair tmp = self->tab[i];
-        self->tab[i] = self->tab[1];
-        self->tab[1] = tmp;
+        self->tab[i] = self->tab[0];
+        self->tab[0] = tmp;
         tamiser(self, 1, i-1);
     }
+    printf("Sorted : ");
+    printTab(self->tab, self->size*2, 2);
 }
 
 void tamiser(struct heap* self, int sommet, int n){
@@ -175,14 +176,15 @@ void updateWeights(struct heap *self, struct graph *g, int dernierSommetParcours
     }*/
 
     //pour tous les sommet du graphe sauf ceux mis dans le parcours
-    for(i=0; i<g->nbMaxSommets; i++){
+    for(i=0; i<g->nbMaxSommets-1; i++){
         int sommet = self->tab[i].elem[0];
         nodeTmp = searchNode(&list, sommet);
         float poids = nodeTmp->poids;
         self->tab[i].elem[1] = poids;
-        sortHeap(self);
-        printTab(self->tab, self->size*2, 2);
     }
+    printf("Weight : ");
+    printTab(self->tab, self->size*2, 2);
+    sortHeap(self, self->size);
 
     free(nodeTmp);
 }
