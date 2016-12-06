@@ -84,38 +84,29 @@ int main(int argc, char *argv[]){
     /*********************L'algorithme du plus court chemin*****************************/
 
     struct heap tas = createHeap();
-
-    printf("Tas vide : ");
-    printTab(tas.tab, tas.size*2, 2);
-
     int parcours[nbSommets];
     int parcoursCourant = 1;
 
     //on commence par le sommet 0
     parcours[0] = 0;
 
-    int k;
-    for(k = 1; k<nbSommets; k++) {
-        //on ajoute les sommets au tas avec leur poids en partant de 0
-        struct list suivants = graphe.listesAdjacences[parcours[k-1]];
-        struct list_node *nodeTmp;
-        nodeTmp = suivants.first;
-        while (nodeTmp->next != NULL) {
-            float poids = nodeTmp->poids;
-            struct pair p = createPair(nodeTmp->state, poids);
-            pushHeap(&tas, p);
-            nodeTmp = nodeTmp->next;
-        }
-        parcours[k] = tas.tab[0].elem[0];
-        printf("Parcours : ");
-        printTab(parcours, nbSommets, 1);
+    int max_weight = max(&graphe.listesAdjacences[0], graphe.nbMaxSommets);
+    max_weight ++;
+    //on ajoute les sommets au tas avec leur poids en partant de 0
+    struct list suivants = graphe.listesAdjacences[0];
+    struct list_node* nodeTmp = malloc(sizeof(struct list_node));
+    nodeTmp = suivants.first;
+    while(nodeTmp ->next != NULL){
+        float poids = nodeTmp->poids;
+        struct pair p = createPair(i, poids);
+        pushHeap(&tas, p);
     }
+    free(nodeTmp);
 
-    printf("Result : ");
     printTab(tas.tab, tas.size*2, 2);
 
     //on met à jour les poids pour accéder aux sommets
-    //updateWeights(&tas, &graphe, 0);
+    updateWeights(&tas, &graphe, 0);
 
     //printTab(tas.tab, tas.size*2, 2);
 

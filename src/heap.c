@@ -104,15 +104,41 @@ int isEmptyHeap(struct heap *self){
         poids_pere = self->tab[pere].elem[1];
         poids_fils = self->tab[current].elem[1];
     }
-    */
+
 }*/
 
 void sortHeap(struct heap *self, int size){
-
+    int i;
+    for(i = size/2; i<=1; i++){
+        tamiser(self, i, size);
+    }
+    for(i = size; i<=2; i++){
+        struct pair tmp = self->tab[i];
+        self->tab[i] = self->tab[1];
+        self->tab[1] = tmp;
+        tamiser(self, 1, i-1);
+    }
 }
 
 void tamiser(struct heap* self, int sommet, int n){
+    int k = sommet;
+    int j = 2 * k;
 
+    while(j <= n){
+        if(j < n && self->tab[j].elem[1] < self->tab[j+1].elem[1]){
+            j ++;
+        }
+        if(self->tab[k].elem[1] < self->tab[j].elem[1]){
+            struct pair tmp = self->tab[k];
+            self->tab[k] = self->tab[j];
+            self->tab[j] = tmp;
+            k = j;
+            j = 2 * k;
+        }
+        else{
+            j = n;
+        }
+    }
 }
 
 void expandHeap(struct heap *self){
