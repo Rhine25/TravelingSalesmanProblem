@@ -72,40 +72,6 @@ int isEmptyHeap(struct heap *self){
     return self->size == 0;
 }
 
-/*void rearrangeHeap(struct heap *self){
-    struct pair tmp;
-    int size = self->size;
-    int index = size/2;
-    while(self->tab[index].elem[1] > self->tab[size].elem[1] && size>1) {
-        tmp = self->tab[size];
-        self->tab[size] = self->tab[index];
-        self->tab[index] = tmp;
-
-        index/=2;
-        size/=2;
-    }
-
-    /*Autre façon
-    struct pair tmp;
-    int current = self->size-1;
-    int pere = father(current);
-    float poids_pere = self->tab[pere].elem[1];
-    float poids_fils = self->tab[current].elem[1];
-    while( poids_pere > poids_fils && current>0) {
-        int i;
-        tmp = self->tab[current];
-        self->tab[current] = self->tab[pere];
-        self->tab[pere] = tmp;
-        printf("Sorted : ");
-        printTab(self->tab, self->size*2, 2);
-        current = pere;
-        pere = father(pere);
-        poids_pere = self->tab[pere].elem[1];
-        poids_fils = self->tab[current].elem[1];
-    }
-
-}*/
-
 void sortHeap(struct heap *self, int size){
     int i;
     for(i = size/2; i>=0; i--){
@@ -199,6 +165,35 @@ int left_child(int elem){
 
 int right_child(int elem){
     return 2 * (elem + 1);
+}
+
+void heapUp(struct heap* self, int elem){
+    int l = left_child(elem);
+    int r = right_child(elem);
+    int min = elem;
+    if(l < self->size && self->tab[l].elem[1] < self->tab[elem].elem[1]){
+        min = l;
+    }
+    if(r < self->size && self->tab[r].elem[1] < self->tab[min].elem[1]){
+        min = r;
+    }
+    if(min != elem){
+        swap(self, elem, min);
+        heapUp(self, min);
+    }
+}
+
+void rearrangeHeap(struct heap* self){
+    int i;
+    for(i = ((self->size+1)/2)-1; i>=1; i--){ //revoir le /2 pour coller avec le commençage de l'indexage à 0
+        heapUp(self, i);
+    }
+}
+
+void swap(struct heap* self, int i, int j){
+    struct pair tmp = self->tab[i];
+    self->tab[i] = self->tab[j];
+    self->tab[j] = tmp;
 }
 
 

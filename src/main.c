@@ -11,6 +11,11 @@
 //TODO faire les plus proches voisins avec un tas
 //TODO debug segfault libliste liste to string
 //TODO calcul du poids du parcours pour les plus proches voisins
+//TODO pas besoin que le tas stocke les poids, faire des fonctions pour les récupérer facilement
+
+/*
+ *  UTILI§SER ENTASSER pour le plus petit
+ */
 
 int main(int argc, char *argv[]){
 
@@ -86,6 +91,7 @@ int main(int argc, char *argv[]){
     }
 
     /*********************L'algorithme du plus court chemin*****************************/
+    //Avec une liste chainée
 
     //struct heap tas = createHeap();
     struct list liste = createList();
@@ -104,9 +110,6 @@ int main(int argc, char *argv[]){
         nodeTmp = searchNode(&list, i);
         addNode(&liste,i,nodeTmp->poids);
     }
-
-    printf("Ma belle liste vierge : ");
-    printf(listToString(&liste));
 
     //printTab(tas.tab, tas.size*2, 2);
 
@@ -141,7 +144,7 @@ int main(int argc, char *argv[]){
             while(nodeTmpList->state != nodeTmpListe->state && nodeTmpList != NULL){
                 nodeTmpList = nodeTmpList->next;
             }
-            printf("Caca prout caca état : %d\n", nodeTmpList->state);
+            //rintf("Caca prout caca état : %d\n", nodeTmpList->state);
             nodeTmpListe->poids = nodeTmpList->poids;
             nodeTmpListe = nodeTmpListe->next;
         }
@@ -254,4 +257,9 @@ int popMin(struct list* self){
     int min = nodeMin->state;
     delNode(self, nodeMin->state);
     return min;
+}
+
+float poids(struct graph* self, int sommet_source, int sommet_cible){
+    struct list_node* tmp = searchNode(&self->listesAdjacences[sommet_source], sommet_cible);
+    return tmp->poids;
 }
