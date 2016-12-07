@@ -93,8 +93,8 @@ int main(int argc, char *argv[]){
     /*********************L'algorithme du plus court chemin*****************************/
     //Avec une liste chainée
 
-    //struct heap tas = createHeap();
-    struct list liste = createList();
+    struct heap tas = createHeap();
+    //struct list liste = createList();
     int parcours[nbSommets];
     int parcoursCourant = 1;
 
@@ -103,51 +103,28 @@ int main(int argc, char *argv[]){
 
     //on ajoute les sommets au tas
     for(i=1; i<nbSommets; i++){
-        //struct pair p = createPair(i, 0);
-        //pushHeap(&tas, p);
-        struct list list = graphe.listesAdjacences[0];
-        struct list_node* nodeTmp;
-        nodeTmp = searchNode(&list, i);
-        addNode(&liste,i,nodeTmp->poids);
+        struct pair p = createPair(i, poids(&graphe, 0, i));
+        pushHeap(&tas, p);
     }
 
-    //printTab(tas.tab, tas.size*2, 2);
+    printTab(tas.tab, tas.size*2, 2);
 
-    //on met à jour les poids pour accéder aux sommets
-    //updateWeights(&tas, &graphe, 0);
-
-    //printTab(tas.tab, tas.size*2, 2);
-
-    //sortHeap(&tas, tas.size);
-
-    //printTab(tas.tab, tas.size*2, 2);
-
-    //on fait le parcours
-    /*while(!isEmptyHeap(&tas)){
-        struct pair p = popHeap(&tas);
-        parcours[parcoursCourant] = p.elem[0];
-        parcoursCourant ++;
-    }*/
-
-    while(!isEmptyList(&liste)){
-        parcours[parcoursCourant] = popMin(&liste);
+    while(!isEmptyHeap(&tas)){
+        rearrangeHeap(&tas);
+        printf("Rearranged : ");
+        printTab(tas.tab, tas.size*2, 2);
+        parcours[parcoursCourant] = popHeap(&tas).elem[0];
         //printf("Popped min : ");
         //printf(listToString(&liste));
+        printf("Next neighbour : ");
         printTab(parcours, parcoursCourant+1, 1);
+        printf("Stripped : ");
+        printTab(tas.tab, tas.size*2, 2);
 
-        struct list list = graphe.listesAdjacences[parcours[parcoursCourant]]; //dedans ça y a POIDS intéressant
-        struct list_node* nodeTmpListe = liste.first; //parcours liste des sommets non visités
-        struct list_node* nodeTmpList = list.first; //liste des sommets depuis le dernier sommet visité
-        parcoursCourant ++;
+
         //mise à jour des poids des aretes
-        while(nodeTmpListe != NULL){
-            while(nodeTmpList->state != nodeTmpListe->state && nodeTmpList != NULL){
-                nodeTmpList = nodeTmpList->next;
-            }
-            //rintf("Caca prout caca état : %d\n", nodeTmpList->state);
-            nodeTmpListe->poids = nodeTmpList->poids;
-            nodeTmpListe = nodeTmpListe->next;
-        }
+        updateWeights(&tas, &graphe, parcours[parcoursCourant]);
+        parcoursCourant ++;
         //printf("New weights : ");
         //printf(listToString(&liste));
     }

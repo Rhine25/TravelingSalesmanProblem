@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -Wall -c -static -L../Project1/lib -lgraf
+CFLAGS=-g -Wall -c
 CLINK=-lm
 
 EXEC=tsp
@@ -8,10 +8,10 @@ CFILES:=$(wildcard src/*.c)
 COBJ:=$(addprefix obj/,$(notdir $(CFILES:.c=_c.o)))
 
 all: $(COBJ)
-	$(CC) $^ -o bin/$(EXEC) $(CLINK)
+	$(CC) $^ -o bin/$(EXEC) $(CLINK) -Llib -lgraf
 
 obj/%_c.o: src/%.c
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ lib/libgraf.a -o $@
 
 clean:
 	rm obj/*.o;

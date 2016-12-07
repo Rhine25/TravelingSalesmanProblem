@@ -37,7 +37,7 @@ void pushHeap(struct heap *self, struct pair values){
 }
 
 struct pair popHeap(struct heap *self){
-    struct pair tmp;
+    /*struct pair tmp;
     int indexUp = 1;
     int indexDn = 2;
 
@@ -64,7 +64,11 @@ struct pair popHeap(struct heap *self){
         }
         indexUp = indexDn;
         indexDn *= 2;
-    }
+    }*/
+    struct pair value = self->tab[0];
+    self->size--;
+    self->tab[0] = self->tab[self->size];
+    rearrangeHeap(self);
     return value;
 }
 
@@ -115,7 +119,7 @@ void expandHeap(struct heap *self){
 }
 
 void updateWeights(struct heap *self, struct graph *g, int dernierSommetParcours){
-    struct list list = g->listesAdjacences[dernierSommetParcours];
+    /*struct list list = g->listesAdjacences[dernierSommetParcours];
     int i;
     struct list_node* nodeTmp = malloc(sizeof(struct list_node));
     int last = self->size-1;
@@ -141,18 +145,16 @@ void updateWeights(struct heap *self, struct graph *g, int dernierSommetParcours
         printTab(self->tab, self->size*2, 2);
     }*/
 
+    int i;
     //pour tous les sommet du graphe sauf ceux mis dans le parcours
-    for(i=0; i<g->nbMaxSommets-1; i++){
-        int sommet = self->tab[i].elem[0];
-        nodeTmp = searchNode(&list, sommet);
-        float poids = nodeTmp->poids;
-        self->tab[i].elem[1] = poids;
+    for(i=0; i<self->size; i++){
+        self->tab[i].elem[1] = poids(g, dernierSommetParcours, self->tab[i].elem[0]);
     }
     printf("Weight : ");
     printTab(self->tab, self->size*2, 2);
-    sortHeap(self, self->size);
+    rearrangeHeap(self);
 
-    free(nodeTmp);
+    //free(nodeTmp);
 }
 
 int father(int elem){
@@ -160,7 +162,7 @@ int father(int elem){
 }
 
 int left_child(int elem){
-    right_child(elem) - 1;
+    return right_child(elem) - 1;
 }
 
 int right_child(int elem){
@@ -185,7 +187,7 @@ void heapUp(struct heap* self, int elem){
 
 void rearrangeHeap(struct heap* self){
     int i;
-    for(i = ((self->size+1)/2)-1; i>=1; i--){ //revoir le /2 pour coller avec le commençage de l'indexage à 0
+    for(i = ((self->size)/2)-1; i>=0; i--){ //revoir le /2 pour coller avec le commençage de l'indexage à 0
         heapUp(self, i);
     }
 }

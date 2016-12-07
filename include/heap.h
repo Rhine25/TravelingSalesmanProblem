@@ -19,11 +19,9 @@ void destroyHeap(struct heap *self);
 void pushHeap(struct heap *self, struct pair values);
 struct pair popHeap(struct heap *self);
 int isEmptyHeap(struct heap *self);
-void sortHeap(struct heap *self, int size);
 void tamiser(struct heap* self, int sommet, int n);
 void expandHeap(struct heap *self);
 void updateWeights(struct heap *self, struct graph *g, int dernierSommetParcours);
-int popMin(struct list* self);
 
 int father(int elem);
 int left_child(int elem);
