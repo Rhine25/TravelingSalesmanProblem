@@ -8,66 +8,48 @@
 
 struct heap createHeap(){
     struct heap self;
-    self.tab = malloc(32*sizeof(struct pair));
+    //self.tab = malloc(32*sizeof(struct pair));
+    self.sommets = malloc(32*sizeof(int));
+    self.poids = malloc(32*sizeof(float));
     self.capacity = 32;
     self.size = 0;
     return self;
 }
 
-struct pair createPair(int sommet, int poids){
+/*struct pair createPair(int sommet, int poids){
     struct pair p;
     p.elem[0] = sommet;
     p.elem[1] = poids;
     return p;
-}
+}*/
 
 void destroyHeap(struct heap *self){
-    free(self->tab);
-    free(self);
+    //free(self->tab);
+    free(self->sommets);
+    free(self->poids);
 }
 
-void pushHeap(struct heap *self, struct pair values){
+//void pushHeap(struct heap *self, struct pair values){
+void pushHeap(struct heap *self, int sommet, float poids){
     if(self->size == self->capacity){
         expandHeap(self);
     }
-    self->tab[self->size] = values;
+    //self->tab[self->size] = values;
+    self->sommets[self->size] = sommet;
+    self->poids[sommet] = poids;
     self->size ++;
-    //printf("Pushed smtg : ");
-    //printTab(self->tab, self->size*2, 2);
 }
 
-struct pair popHeap(struct heap *self){
-    /*struct pair tmp;
-    int indexUp = 1;
-    int indexDn = 2;
-
-    struct pair value;
-    value.elem[0] = -1;
-    value.elem[1] = -1;
-    if(isEmptyHeap(self)) return value;
-
-    value = self->tab[1];
-    self->tab[1] = self->tab[self->size];
+//struct pair popHeap(struct heap *self){
+struct couple popHeap(struct heap *self){
+    //struct pair value = self->tab[0];
+    struct couple value;
+    value.sommet = self->sommets[0];
+    value.poids = self->poids[self->sommets[0]];
+    //TODO attention, poids quand un sommet est pop du tas reste de la même taille (correspond à tous les sommets quand même)
     self->size--;
-
-    while(indexDn<=self->size)
-    {
-        if(indexDn+1 <= self->size && self->tab[indexDn].elem[1] < self->tab[indexDn+1].elem[1])
-        {
-            indexDn++;
-        }
-        if(self->tab[indexDn].elem[1] > self->tab[indexUp].elem[1])
-        {
-            tmp = self->tab[indexDn];
-            self->tab[indexDn] = self->tab[indexUp];
-            self->tab[indexUp] = tmp;
-        }
-        indexUp = indexDn;
-        indexDn *= 2;
-    }*/
-    struct pair value = self->tab[0];
-    self->size--;
-    self->tab[0] = self->tab[self->size];
+    //self->tab[0] = self->tab[self->size];
+    self->sommets[0] = self->sommets[self->size];
     rearrangeHeap(self);
     return value;
 }
@@ -76,85 +58,23 @@ int isEmptyHeap(struct heap *self){
     return self->size == 0;
 }
 
-void sortHeap(struct heap *self, int size){
-    int i;
-    for(i = size/2; i>=0; i--){
-        tamiser(self, i, size);
-    }
-    for(i = size; i>=1; i--){
-        struct pair tmp = self->tab[i];
-        self->tab[i] = self->tab[0];
-        self->tab[0] = tmp;
-        tamiser(self, 1, i-1);
-    }
-    printf("Sorted : ");
-    printTab(self->tab, self->size*2, 2);
-}
-
-void tamiser(struct heap* self, int sommet, int n){
-    int k = sommet;
-    int j = 2 * k;
-
-    while(j <= n){
-        if(j < n && self->tab[j].elem[1] < self->tab[j+1].elem[1]){
-            j ++;
-        }
-        if(self->tab[k].elem[1] < self->tab[j].elem[1]){
-            struct pair tmp = self->tab[k];
-            self->tab[k] = self->tab[j];
-            self->tab[j] = tmp;
-            k = j;
-            j = 2 * k;
-        }
-        else{
-            j = n;
-        }
-    }
-}
-
 void expandHeap(struct heap *self){
     int new_size = 2*self->capacity;
-    self->tab = realloc(self->tab, new_size*sizeof(int));
+    //self->tab = realloc(self->tab, new_size*sizeof(int));
+    self->sommets = realloc(self->sommets, new_size*sizeof(int));
+    self->poids = realloc(self->poids, new_size*sizeof(float));
     self->capacity = new_size;
 }
 
 void updateWeights(struct heap *self, struct graph *g, int dernierSommetParcours){
-    /*struct list list = g->listesAdjacences[dernierSommetParcours];
-    int i;
-    struct list_node* nodeTmp = malloc(sizeof(struct list_node));
-    int last = self->size-1;
-    //int pere = father(current);
-
-    //TODO check if < ou <= self size
-    /* Jolie boucle pour si on ne trie pas
-     * for(i=0; i<=self->size; i++){
-        int sommet = self->tab[i].elem[0];
-        nodeTmp = searchNode(&list, sommet);
-        float poids = nodeTmp->poids;
-        self->tab[i].elem[1] = poids;
-        printTab(self->tab, self->size*2, 2);
-    }*/
-
-    /* Presque Utile boucle pour si on trie à chaque poids
-    for(i=0; i<=self->size; i++){
-        int sommet = self->tab[last].elem[0];
-        nodeTmp = searchNode(&list, sommet);
-        float poids = nodeTmp->poids;
-        self->tab[last].elem[1] = poids;
-        sortHeap(self);
-        printTab(self->tab, self->size*2, 2);
-    }*/
 
     int i;
     //pour tous les sommet du graphe sauf ceux mis dans le parcours
     for(i=0; i<self->size; i++){
-        self->tab[i].elem[1] = poids(g, dernierSommetParcours, self->tab[i].elem[0]);
+        //self->tab[i].elem[1] = poids(g, dernierSommetParcours, self->tab[i].elem[0]);
+        self->poids[self->sommets[i]] = poids(g, dernierSommetParcours, self->sommets[i]);
     }
-    printf("Weight : ");
-    printTab(self->tab, self->size*2, 2);
     rearrangeHeap(self);
-
-    //free(nodeTmp);
 }
 
 int father(int elem){
@@ -173,10 +93,12 @@ void heapUp(struct heap* self, int elem){
     int l = left_child(elem);
     int r = right_child(elem);
     int min = elem;
-    if(l < self->size && self->tab[l].elem[1] < self->tab[elem].elem[1]){
+    //if(l < self->size && self->tab[l].elem[1] < self->tab[elem].elem[1]){
+    if(l < self->size && self->poids[self->sommets[l]] < self->poids[self->sommets[elem]]){
         min = l;
     }
-    if(r < self->size && self->tab[r].elem[1] < self->tab[min].elem[1]){
+    //if(r < self->size && self->tab[r].elem[1] < self->tab[min].elem[1]){
+    if(r < self->size && self->poids[self->sommets[r]] < self->poids[self->sommets[min]]){
         min = r;
     }
     if(min != elem){
@@ -193,9 +115,12 @@ void rearrangeHeap(struct heap* self){
 }
 
 void swap(struct heap* self, int i, int j){
-    struct pair tmp = self->tab[i];
-    self->tab[i] = self->tab[j];
-    self->tab[j] = tmp;
+    //struct pair tmp = self->tab[i];
+    int tmp = self->sommets[i];
+    //self->tab[i] = self->tab[j];
+    self->sommets[i] = self->sommets[j];
+    //self->tab[j] = tmp;
+    self->sommets[j] = tmp;
 }
 
 

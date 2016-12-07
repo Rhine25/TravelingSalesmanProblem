@@ -8,10 +8,9 @@
 #include "../../Projet1/include/libliste.h"
 
 
-//TODO faire les plus proches voisins avec un tas
-//TODO debug segfault libliste liste to string
 //TODO calcul du poids du parcours pour les plus proches voisins
 //TODO pas besoin que le tas stocke les poids, faire des fonctions pour les récupérer facilement
+//TODO les poids en float dans le tas
 
 /*
  *  UTILI§SER ENTASSER pour le plus petit
@@ -52,13 +51,6 @@ int main(int argc, char *argv[]){
         }
     }
 
-    //printGraphe(&graphe, stderr);
-
-    int list[nbSommets];
-    for(i=0; i<nbSommets; i++){
-        list[i] = i;
-    }
-
     /************************Calcul de la solution exacte********************/
     if(nbSommets < 10){
         //trouver tous les circuits, calculer leur cout, garder le meilleur
@@ -91,10 +83,8 @@ int main(int argc, char *argv[]){
     }
 
     /*********************L'algorithme du plus court chemin*****************************/
-    //Avec une liste chainée
 
     struct heap tas = createHeap();
-    //struct list liste = createList();
     int parcours[nbSommets];
     int parcoursCourant = 1;
 
@@ -103,34 +93,24 @@ int main(int argc, char *argv[]){
 
     //on ajoute les sommets au tas
     for(i=1; i<nbSommets; i++){
-        struct pair p = createPair(i, poids(&graphe, 0, i));
-        pushHeap(&tas, p);
+        //struct pair p = createPair(i, poids(&graphe, 0, i));
+        pushHeap(&tas, i, poids(&graphe, 0, i));
     }
-
-    printTab(tas.tab, tas.size*2, 2);
 
     while(!isEmptyHeap(&tas)){
         rearrangeHeap(&tas);
-        printf("Rearranged : ");
-        printTab(tas.tab, tas.size*2, 2);
-        parcours[parcoursCourant] = popHeap(&tas).elem[0];
-        //printf("Popped min : ");
-        //printf(listToString(&liste));
-        printf("Next neighbour : ");
-        printTab(parcours, parcoursCourant+1, 1);
-        printf("Stripped : ");
-        printTab(tas.tab, tas.size*2, 2);
+        parcours[parcoursCourant] = popHeap(&tas).sommet;
 
 
         //mise à jour des poids des aretes
         updateWeights(&tas, &graphe, parcours[parcoursCourant]);
         parcoursCourant ++;
-        //printf("New weights : ");
-        //printf(listToString(&liste));
     }
 
     printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme du plus cours chemin est : ");
     printTab(parcours, nbSommets, 1);
+
+    destroyHeap(&tas);
 
     return 0;
 }
@@ -150,10 +130,8 @@ void printTab(int* tab, int taille, int tailleBloc){
         printf("[");
         for(j = 0; j<tailleBloc-1; j++){
             printf("%d,", tab[i+j]);
-            //printf("%d,", i+j);
         }
         printf("%d", tab[i+j]);
-        //printf("%d", i+j);
         printf("],");
     }
     printf("]\n");

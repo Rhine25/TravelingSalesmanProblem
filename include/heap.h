@@ -6,20 +6,28 @@
 struct heap{
     int capacity;
     int size;
-    struct pair* tab;
+    //struct pair* tab;
+    int* sommets;
+    float* poids;
 };
 
-struct pair{
-    int elem[2]; //elem[0] sommet et elem[1] poids depuis le sommet courant
+/*struct pair{
+    float elem[2]; //elem[0] sommet et elem[1] poids depuis le sommet courant
+};*/
+
+struct couple{
+    int sommet;
+    float poids;
 };
 
 struct heap createHeap();
 struct pair createPair(int sommet, int poids);
 void destroyHeap(struct heap *self);
-void pushHeap(struct heap *self, struct pair values);
-struct pair popHeap(struct heap *self);
+//void pushHeap(struct heap *self, struct pair values);
+void pushHeap(struct heap *self, int sommet, float poids);
+//struct pair popHeap(struct heap *self);
+struct couple popHeap(struct heap *self);
 int isEmptyHeap(struct heap *self);
-void tamiser(struct heap* self, int sommet, int n);
 void expandHeap(struct heap *self);
 void updateWeights(struct heap *self, struct graph *g, int dernierSommetParcours);
 
