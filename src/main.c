@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
     for(i=0; i<nbSommets; i++){
         sommets[i].x = random()%100;
         sommets[i].y = random()%100;
-        //printf("sommet %d (%d,%d)\n", i, sommets[i].x, sommets[i].y);
+        printf("sommet %d (%d,%d)\n", i, sommets[i].x, sommets[i].y);
         addVertex(&graphe);
     }
 
@@ -51,18 +51,21 @@ int main(int argc, char *argv[]){
         }
     }
 
+    printGraphe(&graphe, stdout);
+
     /************************Calcul de la solution exacte********************/
-    if(nbSommets < 10){
+    //TODO fiw this not working for over 6
+    if(nbSommets < 7){
         //trouver tous les circuits, calculer leur cout, garder le meilleur
 
         int tab[nbSommets*factorielle(nbSommets)]; //tableau des parcours possibles
         effectue(nbSommets, tab);
 
-        int couts[factorielle(nbSommets)]; //tableau des couts des parcours
+        float couts[factorielle(nbSommets)]; //tableau des couts des parcours
         for(i=0; i<factorielle(nbSommets); i++){ //pour chaque parcours
             int j;
-            int somme = 0;
-            for(j=1; j<nbSommets-1; j++){ //
+            float somme = 0;
+            for(j=0; j<nbSommets-1; j++){ //
                 struct list_node* arete = searchNode(&graphe.listesAdjacences[tab[i*nbSommets+j]], tab[i*nbSommets+j+1]); //
                 somme += arete->poids;
             }
@@ -76,7 +79,7 @@ int main(int argc, char *argv[]){
                 indice = i;
             }
         }
-        printf("Un des circuits hamiltoniens optimaux pour ce graphe est : ");
+        printf("Un des circuits hamiltoniens optimaux pour ce graphe a pour cout %f et est : ", couts[indice]);
         for(i = 0;i<nbSommets;i++){
             printf("%d ", tab[indice*nbSommets+i]);
         }
@@ -84,33 +87,95 @@ int main(int argc, char *argv[]){
 
     /*********************L'algorithme du plus court chemin*****************************/
 
-    struct heap tas = createHeap();
+    struct heap tasPlusProcheVoisin = createHeap();
     int parcours[nbSommets];
     int parcoursCourant = 1;
 
     //on commence par le sommet 0
     parcours[0] = 0;
+    float cout = 0;
 
     //on ajoute les sommets au tas
     for(i=1; i<nbSommets; i++){
-        //struct pair p = createPair(i, poids(&graphe, 0, i));
-        pushHeap(&tas, i, poids(&graphe, 0, i));
+        pushHeap(&tasPlusProcheVoisin, i, poids(&graphe, 0, i));
     }
 
-    while(!isEmptyHeap(&tas)){
-        rearrangeHeap(&tas);
-        parcours[parcoursCourant] = popHeap(&tas).sommet;
-
+    while(!isEmptyHeap(&tasPlusProcheVoisin)){
+        rearrangeHeap(&tasPlusProcheVoisin);
+        struct couple couple = popHeap(&tasPlusProcheVoisin);
+        parcours[parcoursCourant] = couple.sommet;
+        cout += couple.poids;
 
         //mise à jour des poids des aretes
-        updateWeights(&tas, &graphe, parcours[parcoursCourant]);
+        updateWeights(&tasPlusProcheVoisin, &graphe, parcours[parcoursCourant]);
         parcoursCourant ++;
     }
 
-    printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme du plus cours chemin est : ");
+    printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme du plus cours chemin a pour cout %f et est : ", cout);
     printTab(parcours, nbSommets, 1);
 
-    destroyHeap(&tas);
+    destroyHeap(&tasPlusProcheVoisin);
+
+    /*********************L'algorithme du plus petit détour*****************************/
+
+    if(nbSommets >= 3){
+        struct heap tasPlusPetitDetour = createHeap();
+        //choisis l'arete la plus courte
+        int i;
+        float min = graphe.listesAdjacences[0].first->poids;
+        int sommet1 = 0;
+        int sommet2 = graphe.listesAdjacences[0].first->state;
+        for(i=0; i<nbSommets; i++){ //pour chaque sommet du graphe
+            struct list_node* walk = graphe.listesAdjacences[i].first;
+            while(walk->next != NULL){ //pour chaque voisin
+                if(walk->poids < min){
+                    min = walk->poids;
+                    sommet1 = i;
+                    sommet2 = walk->state;
+                }
+                walk = walk->next;
+            }
+        }
+
+        //crée la tournée à deux sommets
+        struct list tournee = createList();
+        addNode(&tournee, sommet1, 0);
+        addNode(&tournee, sommet2, 0);
+
+        printf(listToString(&tournee));
+
+        struct arete aretes[nbSommets];//tableau qui va contenir les aretes correspondant au poids de chaque sommet du tas
+
+        //on met les sommets pas encore dans la tournée dans un tas
+        for(i=0; i<nbSommets; i++){
+            if(i != sommet1 && i != sommet2){ //si le sommet n'est pas encore dans la tournee
+                struct list_node* walk = tournee.first;
+                float cout_detour_min = poids(&graphe, i, tournee.first->state)
+                                        + poids(&graphe, i, tournee.first->next->state)
+                                        - poids(&graphe, tournee.first->state, tournee.first->next->state);
+                int sommetAMin = tournee.first->state;
+                int sommetBMin = tournee.first->next->state;
+
+                while(walk->next != NULL){ //pour chaque arete de la tournee
+                    int sommetA = walk->state;
+                    int sommetB = walk->next->state;
+                    float cout_arete_initiale = poids(&graphe, sommetA, sommetB);
+                    float cout_AN = poids(&graphe, i, sommetA);
+                    float cout_BN = poids(&graphe, i, sommetB);
+                    float cout_detour = cout_AN + cout_BN - cout_arete_initiale;
+                    if(cout_detour < cout_detour_min){
+                        cout_detour_min = cout_detour;
+                        sommetAMin = sommetA;
+                        sommetBMin = sommetB;
+                    }
+                    aretes[i].sommetA = sommetAMin;
+                    aretes[i].sommetB = sommetBMin;
+                    walk = walk->next;
+                }
+                pushHeap(&tasPlusPetitDetour, i, cout_detour_min);
+            }
+        }
+    }
 
     return 0;
 }
@@ -198,23 +263,10 @@ void effectue(int n, int* tab) {
     arrangements(n, 0, L, t, tab);
 }
 
-int popMin(struct list* self){
-    struct list_node* nodeParcours;
-    struct list_node* nodeMin;
-    nodeParcours = self->first;
-    nodeMin = self->first;
-    while(nodeParcours != NULL){
-        if(nodeParcours->poids < nodeMin->poids){
-            nodeMin = nodeParcours;
-        }
-        nodeParcours = nodeParcours->next;
-    }
-    int min = nodeMin->state;
-    delNode(self, nodeMin->state);
-    return min;
-}
-
 float poids(struct graph* self, int sommet_source, int sommet_cible){
     struct list_node* tmp = searchNode(&self->listesAdjacences[sommet_source], sommet_cible);
     return tmp->poids;
 }
+
+
+

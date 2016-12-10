@@ -20,6 +20,11 @@ struct couple{
     float poids;
 };
 
+struct arete{
+    int sommetA;
+    int sommetB;
+};
+
 struct heap createHeap();
 struct pair createPair(int sommet, int poids);
 void destroyHeap(struct heap *self);
