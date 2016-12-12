@@ -46,7 +46,7 @@ struct couple popHeap(struct heap *self){
     struct couple value;
     value.sommet = self->sommets[0];
     value.poids = self->poids[self->sommets[0]];
-    //TODO attention, poids quand un sommet est pop du tas reste de la même taille (correspond à tous les sommets quand même)
+    //TODO attention, le tableau poids quand un sommet est pop du tas reste de la même taille (correspond à tous les sommets quand même)
     self->size--;
     //self->tab[0] = self->tab[self->size];
     self->sommets[0] = self->sommets[self->size];
@@ -115,12 +115,11 @@ void rearrangeHeap(struct heap* self){
 }
 
 void swap(struct heap* self, int i, int j){
-    //struct pair tmp = self->tab[i];
     int tmp = self->sommets[i];
-    //self->tab[i] = self->tab[j];
     self->sommets[i] = self->sommets[j];
-    //self->tab[j] = tmp;
     self->sommets[j] = tmp;
+
+    //DISCLAIMER : on ne trie pas les poids car dans le pop on accède au poids selon le numéro du sommet pour ne pas avoir à effectuer le double de tri alors qu'on peut garder les accès en instant'
 }
 
 
