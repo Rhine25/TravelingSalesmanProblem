@@ -43,4 +43,7 @@ void heapUp(struct heap* self, int elem);
 void rearrangeHeap(struct heap* self);
 void swap(struct heap* self, int i, int j);
 
+//parcours en profondeur
+void dfsb(const struct graph *self, int state, int* parcours);
+void dfsb2(const struct graph *self, int state, int* visited, int* parcours, int* parcoursCourant);
 #endif //TSP_HEAP_H

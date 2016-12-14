@@ -122,4 +122,50 @@ void swap(struct heap* self, int i, int j){
     //DISCLAIMER : on ne trie pas les poids car dans le pop on accède au poids selon le numéro du sommet pour ne pas avoir à effectuer le double de tri alors qu'on peut garder les accès en instant'
 }
 
+//parcours en profondeur
+void dfsb(const struct graph *self, int state, int* parcours){
+    printf("\n");
+    int i;
+    int visited[self->nbMaxSommets];
+    int parcoursCourant[1];
+    parcoursCourant[0] = 0;
+    for(i=0; i<self->nbMaxSommets; i++){
+        visited[i] = 0;
+        parcours[i] = 0;
+    }
+    visited[state] = 1;
+    parcours[0] = state;
+    parcoursCourant[0] ++;
+    struct list_node* walk = self->listesAdjacences[state].first;
+    while(walk->next != NULL){
+        if(visited[walk->state] == 0) {
+            //printf("Parcours : ");
+            //printTab(parcours, parcoursCourant[0], 1);
+            dfsb2(self, walk->state, visited, parcours, parcoursCourant);
+        }
+        walk = walk->next;
+    }
+}
+
+void dfsb2(const struct graph *self, int state, int* visited, int* parcours, int* parcoursCourant){
+    //printf("New 2\n");
+    visited[state] = 1;
+    parcours[parcoursCourant[0]] = state;
+    //printf("2 : Added %d to parcours at %d\n", state, parcoursCourant[0]);
+    parcoursCourant[0] ++;
+    //printf("Parcours courant : %d\n", parcoursCourant[0]);
+    struct list_node* walk = self->listesAdjacences[state].first;
+    while(walk->next != NULL){
+        if(visited[walk->state] == 0) {
+            //printf("Parcours : ");
+            //printf("Parcours courant : %d\n", parcoursCourant[0]);
+            //printTab(parcours, parcoursCourant[0], 1);
+            //printf("Visited : ");
+            //printTab(visited, self->nbMaxSommets, 1);
+            dfsb2(self, walk->state, visited, parcours, parcoursCourant);
+        }
+        walk = walk->next;
+    }
+}
+
 

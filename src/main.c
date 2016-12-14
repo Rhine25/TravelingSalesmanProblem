@@ -7,14 +7,7 @@
 #include "../../Projet1/include/libgraphe.h"
 #include "../../Projet1/include/libliste.h"
 
-
-//TODO calcul du poids du parcours pour les plus proches voisins
-//TODO pas besoin que le tas stocke les poids, faire des fonctions pour les récupérer facilement
-//TODO les poids en float dans le tas
-
-/*
- *  UTILI§SER ENTASSER pour le plus petit
- */
+//TODO faire un joli affichage uniformisé pour les parcours
 
 int main(int argc, char *argv[]){
 
@@ -32,6 +25,7 @@ int main(int argc, char *argv[]){
     struct graph graphe = createGraphe(0, nbSommets);
     struct sommet sommets[nbSommets];
     int i;
+    printf("***********************Les sommets***********************\n");
     for(i=0; i<nbSommets; i++){
         sommets[i].x = random()%100;
         sommets[i].y = random()%100;
@@ -50,7 +44,7 @@ int main(int argc, char *argv[]){
         }
     }
 
-    printGraphe(&graphe, stdout);
+    //printGraphe(&graphe, stdout);
 
     /*Calcul de la solution exacte*/
     //TODO fiw this not working for over 6
@@ -214,7 +208,7 @@ void solution_plus_proche_voisin(struct graph* graphe){
 
     //on ajoute les sommets au tas
     for(i=1; i<nbSommets; i++){
-        pushHeap(&tasPlusProcheVoisin, i, poids(&graphe, 0, i));
+        pushHeap(&tasPlusProcheVoisin, i, poids(graphe, 0, i));
     }
 
     while(!isEmptyHeap(&tasPlusProcheVoisin)){
@@ -224,7 +218,7 @@ void solution_plus_proche_voisin(struct graph* graphe){
         coutProcheVoisin += couple.poids;
 
         //mise à jour des poids des aretes
-        updateWeights(&tasPlusProcheVoisin, &graphe, parcours[parcoursCourant]);
+        updateWeights(&tasPlusProcheVoisin, graphe, parcours[parcoursCourant]);
         parcoursCourant ++;
     }
 
@@ -237,7 +231,6 @@ void solution_plus_proche_voisin(struct graph* graphe){
 void solution_plus_petit_detour(struct graph* graphe){
 
     int nbSommets = graphe->nbMaxSommets;
-    int i;
 
     if(nbSommets >= 2){
         struct heap tasPlusPetitDetour = createHeap();
@@ -262,8 +255,8 @@ void solution_plus_petit_detour(struct graph* graphe){
         struct list tournee = createList();
         addNode(&tournee, sommet1, 0);
         addNode(&tournee, sommet2, 0);
-        float coutPetitDetour = poids(&graphe, sommet1, sommet2);
-        printf(listToString(&tournee));
+        float coutPetitDetour = poids(graphe, sommet1, sommet2);
+        //printf(listToString(&tournee));
 
         struct arete aretes[nbSommets];//tableau qui va contenir les aretes correspondant au poids de chaque sommet du tas
 
@@ -273,9 +266,9 @@ void solution_plus_petit_detour(struct graph* graphe){
 
                 /*Le premier est temporairement le minimum*/
                 struct list_node* walk = tournee.first;
-                float cout_detour_min = poids(&graphe, i, tournee.first->state)
-                                        + poids(&graphe, i, tournee.first->next->state)
-                                        - poids(&graphe, tournee.first->state, tournee.first->next->state);
+                float cout_detour_min = poids(graphe, i, tournee.first->state)
+                                        + poids(graphe, i, tournee.first->next->state)
+                                        - poids(graphe, tournee.first->state, tournee.first->next->state);
                 int sommetAMin = tournee.first->state;
                 int sommetBMin = tournee.first->next->state;
 
@@ -285,9 +278,9 @@ void solution_plus_petit_detour(struct graph* graphe){
                     /*Calcul le cout du détour et cherche par quelle arete il est le plus petit*/
                     int sommetA = walk->state;
                     int sommetB = walk->next->state;
-                    float cout_arete_initiale = poids(&graphe, sommetA, sommetB);
-                    float cout_AN = poids(&graphe, i, sommetA);
-                    float cout_BN = poids(&graphe, i, sommetB);
+                    float cout_arete_initiale = poids(graphe, sommetA, sommetB);
+                    float cout_AN = poids(graphe, i, sommetA);
+                    float cout_BN = poids(graphe, i, sommetB);
                     float cout_detour = cout_AN + cout_BN - cout_arete_initiale;
                     if(cout_detour < cout_detour_min){
                         cout_detour_min = cout_detour;
@@ -326,14 +319,14 @@ void solution_plus_petit_detour(struct graph* graphe){
             walk->next = node;
             coutPetitDetour += c.poids;
 
-            printf(listToString(&tournee));
+            //printf(listToString(&tournee));
 
             //mettre à jour les poids
             for(i=0; i<tasPlusPetitDetour.size; i++){ //pour tous les sommets du tas
                 walk = tournee.first;
-                float cout_detour_min = poids(&graphe, tasPlusPetitDetour.sommets[i], tournee.first->state)
-                                        + poids(&graphe, tasPlusPetitDetour.sommets[i], tournee.first->next->state)
-                                        - poids(&graphe, tournee.first->state, tournee.first->next->state);
+                float cout_detour_min = poids(graphe, tasPlusPetitDetour.sommets[i], tournee.first->state)
+                                        + poids(graphe, tasPlusPetitDetour.sommets[i], tournee.first->next->state)
+                                        - poids(graphe, tournee.first->state, tournee.first->next->state);
                 int sommetAMin = tournee.first->state;
                 int sommetBMin = tournee.first->next->state;
 
@@ -342,15 +335,15 @@ void solution_plus_petit_detour(struct graph* graphe){
                 while(walk->next != NULL){ //pour chaque arete de la tournee
                     int sommetA = walk->state;
                     int sommetB = walk->next->state;
-                    float cout_arete_initiale = poids(&graphe, sommetA, sommetB);
-                    float cout_AN = poids(&graphe, tasPlusPetitDetour.sommets[i], sommetA);
-                    float cout_BN = poids(&graphe, tasPlusPetitDetour.sommets[i], sommetB);
+                    float cout_arete_initiale = poids(graphe, sommetA, sommetB);
+                    float cout_AN = poids(graphe, tasPlusPetitDetour.sommets[i], sommetA);
+                    float cout_BN = poids(graphe, tasPlusPetitDetour.sommets[i], sommetB);
                     float cout_detour = cout_AN + cout_BN - cout_arete_initiale;
                     if(cout_detour < cout_detour_min){
                         cout_detour_min = cout_detour;
                         sommetAMin = sommetA;
                         sommetBMin = sommetB;
-                        printf("TAKEN : Going from %d to %d by %d costs %f\n", sommetAMin, sommetBMin, tasPlusPetitDetour.sommets[i], cout_detour_min);
+                        //printf("TAKEN : Going from %d to %d by %d costs %f\n", sommetAMin, sommetBMin, tasPlusPetitDetour.sommets[i], cout_detour_min);
                     }
                     else{
                         //printf("REJECTED : Going from %d to %d by %d would cost %f\n", sommetA, sommetB, tasPlusPetitDetour.sommets[i], cout_detour);
@@ -379,26 +372,148 @@ void solution_ARPM(struct graph* graphe){
     int nbSommets = graphe->nbMaxSommets;
     int i;
     int j;
+    int aretes[nbSommets]; //sommet source indice, sommet cible en aretes[sommetSource]
     struct heap tas = createHeap();
+    struct graph arpm = createGraphe(0, nbSommets);
+    addVertex(&arpm);
 
     //choisir un sommet
-    //Je choisis le sommet 0
+    int sommetsArbre[nbSommets];
+    sommetsArbre[0] = 0;
+    int nbSommetsArbre = 1;
 
-    //faire un tas avec les autres
+    //faire un tas avec les autres, leur poids est le poids entre chacun d'eux et le sommet initial 0
+    //en même temps ajoute les sommets à l'ARPM
     for(i=1; i<nbSommets; i++){
-        for(j=0; j<nbSommets; j++){
-            
-        }
-        pushHeap(&tas, i, poids(&graphe, 0, i));
+        addVertex(&arpm);
+        pushHeap(&tas, i, poids(graphe, 0, i));
     }
 
     //faire l'ARPM
+    while(!isEmptyHeap(&tas)) {
+        for (i = 0; i < tas.size; i++) {
+            int sommetTas = tas.sommets[i];
+            //printf("Sommet tas : %d\n", sommetTas);
+            //faire le minimum temporaire
+            int sommetArbreMin = sommetsArbre[0];
+            float min = poids(graphe, sommetTas, sommetArbreMin);
+            //printf("DEFAULT sommet arbre : %d ; poids = %f\n", sommetArbreMin, min);
+            aretes[sommetTas] = sommetArbreMin;
+            //faire la boucle sur les sommets de l'arbre
+            for (j = 0; j < nbSommetsArbre; j++) {
+                float poids_arete = poids(graphe, tas.sommets[i], sommetsArbre[j]);
+                if (poids_arete < min) {
+                    min = poids_arete;
+                    sommetArbreMin = sommetsArbre[j];
+                    aretes[sommetTas] = sommetArbreMin;
+                    //printf("TAKEN sommet arbre : %d ; poids = %f\n", sommetArbreMin, min);
+                }
+                else{
+                    //printf("REJECTED sommet arbre : %d ; poids = %f\n", sommetsArbre[j], poids_arete);
+                }
+            }
+            tas.poids[sommetTas] = min;
+        }
+        rearrangeHeap(&tas);
+        struct couple c = popHeap(&tas);
+        struct arete arete_sure;
+        arete_sure.sommetA = c.sommet;
+        arete_sure.sommetB = aretes[c.sommet];
+        addEdge(&arpm, arete_sure.sommetA, arete_sure.sommetB, c.poids);
+        sommetsArbre[nbSommetsArbre] = c.sommet;
+        nbSommetsArbre ++;
+        //printf("added %d -> %d : %f", arete_sure.sommetA, arete_sure.sommetB, c.poids);
+    }
 
-    //faire le parcours en profindeur de l'ARPM
+    //printGraphe(&arpm, stdout);
+
+    //faire le parcours en profondeur de l'ARPM
+    int parcoursDfs[nbSommets];
+    dfsb(&arpm, 0, parcoursDfs);
+    float cout = 0;
+    for(i=1; i<nbSommets; i++){
+        cout += poids(graphe, parcoursDfs[i-1], parcoursDfs[i]);
+    }
+    printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme de l'ARPM a pour cout %f et est : ", cout);
+    printTab(parcoursDfs, nbSommets, 1);
 }
 
 void solution_christofides(struct graph* graphe){
+    int nbSommets = graphe->nbMaxSommets;
+    int i;
+    int j;
+    int aretes[nbSommets]; //sommet source indice, sommet cible en aretes[sommetSource]
+    struct heap tas = createHeap();
+    struct graph arpm = createGraphe(0, nbSommets);
+    addVertex(&arpm);
 
+    //choisir un sommet
+    int sommetsArbre[nbSommets];
+    sommetsArbre[0] = 0;
+    int nbSommetsArbre = 1;
+
+    //faire un tas avec les autres, leur poids est le poids entre chacun d'eux et le sommet initial 0
+    //en même temps ajoute les sommets à l'ARPM
+    for(i=1; i<nbSommets; i++){
+        addVertex(&arpm);
+        pushHeap(&tas, i, poids(graphe, 0, i));
+    }
+
+    //faire l'ARPM
+    while(!isEmptyHeap(&tas)) {
+        for (i = 0; i < tas.size; i++) {
+            int sommetTas = tas.sommets[i];
+            //printf("Sommet tas : %d\n", sommetTas);
+            //faire le minimum temporaire
+            int sommetArbreMin = sommetsArbre[0];
+            float min = poids(graphe, sommetTas, sommetArbreMin);
+            //printf("DEFAULT sommet arbre : %d ; poids = %f\n", sommetArbreMin, min);
+            aretes[sommetTas] = sommetArbreMin;
+            //faire la boucle sur les sommets de l'arbre
+            for (j = 0; j < nbSommetsArbre; j++) {
+                float poids_arete = poids(graphe, tas.sommets[i], sommetsArbre[j]);
+                if (poids_arete < min) {
+                    min = poids_arete;
+                    sommetArbreMin = sommetsArbre[j];
+                    aretes[sommetTas] = sommetArbreMin;
+                    //printf("TAKEN sommet arbre : %d ; poids = %f\n", sommetArbreMin, min);
+                }
+                else{
+                    //printf("REJECTED sommet arbre : %d ; poids = %f\n", sommetsArbre[j], poids_arete);
+                }
+            }
+            tas.poids[sommetTas] = min;
+        }
+        rearrangeHeap(&tas);
+        struct couple c = popHeap(&tas);
+        struct arete arete_sure;
+        arete_sure.sommetA = c.sommet;
+        arete_sure.sommetB = aretes[c.sommet];
+        addEdge(&arpm, arete_sure.sommetA, arete_sure.sommetB, c.poids);
+        sommetsArbre[nbSommetsArbre] = c.sommet;
+        nbSommetsArbre ++;
+        //printf("added %d -> %d : %f", arete_sure.sommetA, arete_sure.sommetB, c.poids);
+    }
+
+    //on cherche les sommets de degré impair
+    int impairs[nbSommets];
+    int nbSommetsDegreImpair = 0;
+    for(i=0; i<nbSommets; i++){
+        if(listSize(&graphe->listesAdjacences[i]) % 2 == 1){
+            impairs[nbSommetsDegreImpair] = i;
+            nbSommetsDegreImpair ++;
+        }
+    }
+
+    //on fait le couplage de poids minimum
+    int tailleTab = nbSommetsDegreImpair*factorielle(nbSommetsDegreImpair);
+    int tab[tailleTab]; //tableau des parcours possibles
+    //effectue(nbSommetsDegreImpair, tab);
+
+    //printTab(tab, tailleTab, nbSommetsDegreImpair);
+
+    //printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme de Christofides a pour cout %f et est : ", cout);
+    //printTab(parcours, nbSommets, 1);
 }
 
 
