@@ -6,14 +6,9 @@
 struct heap{
     int capacity;
     int size;
-    //struct pair* tab;
     int* sommets;
     float* poids;
 };
-
-/*struct pair{
-    float elem[2]; //elem[0] sommet et elem[1] poids depuis le sommet courant
-};*/
 
 struct couple{
     int sommet;

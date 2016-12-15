@@ -11,6 +11,7 @@ struct sommet{
 
 int factorielle(int n);
 void printTab(int* tab, int taille, int tailleBloc);
+void printTabF(int* tab, int taille, int tailleBloc);
 void sublist(int* liste, int taille, int val, int* sub);
 
 void arrangements(int n, int k, int *L, int *t, int* tab);

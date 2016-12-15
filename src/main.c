@@ -8,6 +8,8 @@
 #include "../../Projet1/include/libliste.h"
 
 //TODO faire un joli affichage uniformisé pour les parcours
+//TODO faire les temps de calcul des parcours
+//TODO remettre la premier sommet à la fin des parcours pour chaque méthode
 
 int main(int argc, char *argv[]){
 
@@ -22,15 +24,15 @@ int main(int argc, char *argv[]){
     /**********************Création du graphe**************************/
 
     //Création du graphe et du tableau de sommets
-    struct graph graphe = createGraphe(0, nbSommets);
-    struct sommet sommets[nbSommets];
+    struct graph graphe = createGraphe(0, nbSommets); //création graphe non orienté
+    struct sommet sommets[nbSommets]; //tableau des sommets
     int i;
     printf("***********************Les sommets***********************\n");
     for(i=0; i<nbSommets; i++){
         sommets[i].x = random()%100;
         sommets[i].y = random()%100;
-        printf("sommet %d (%d,%d)\n", i, sommets[i].x, sommets[i].y);
-        addVertex(&graphe);
+        printf("sommet %d (%d,%d)\n", i, sommets[i].x, sommets[i].y); //affichage des sommets créés
+        addVertex(&graphe); //création des sommets au graphe
     }
 
     //création des aretes du graphe afin de le rendre complet
@@ -39,15 +41,12 @@ int main(int argc, char *argv[]){
         for(j = i+1; j<nbSommets; j++){
             //créer arete
             float d = sqrt(pow(sommets[i].x - sommets[j].x, 2) + pow(sommets[i].y - sommets[j].y, 2));
-            //printf("%f\n", d);
-            addEdge(&graphe, i, j, d);
+            addEdge(&graphe, i, j, d); //ajout de l'arete dans le graphe
         }
     }
 
-    //printGraphe(&graphe, stdout);
-
     /*Calcul de la solution exacte*/
-    //TODO fiw this not working for over 6
+    //TODO fix this not working for over 6
     if(nbSommets < 7){ //< 10
         solution_exacte(&graphe);
     }
@@ -181,6 +180,7 @@ void solution_exacte(struct graph* graphe){
     }
     int min = couts[0];
     int indice = 0;
+    //recherche du cout minimum dans le tableau des couts des parcours
     for(i=1; i<factorielle(nbSommets); i++){
         if(couts[i]<min){
             min = couts[i];
@@ -189,7 +189,7 @@ void solution_exacte(struct graph* graphe){
     }
     printf("Un des circuits hamiltoniens optimaux pour ce graphe a pour cout %f et est : ", couts[indice]);
     for(i = 0;i<nbSommets;i++){
-        printf("%d ", tab[indice*nbSommets+i]);
+        printf("%d ", tab[indice*nbSommets+i]); //affichage du parcours
     }
 }
 
@@ -199,11 +199,11 @@ void solution_plus_proche_voisin(struct graph* graphe){
     int i;
 
     struct heap tasPlusProcheVoisin = createHeap();
-    int parcours[nbSommets];
-    int parcoursCourant = 1;
+    int parcours[nbSommets]; //tableau qui va contenir le parcours
 
     //on commence par le sommet 0
     parcours[0] = 0;
+    int parcoursCourant = 1;
     float coutProcheVoisin = 0;
 
     //on ajoute les sommets au tas
@@ -211,13 +211,13 @@ void solution_plus_proche_voisin(struct graph* graphe){
         pushHeap(&tasPlusProcheVoisin, i, poids(graphe, 0, i));
     }
 
-    while(!isEmptyHeap(&tasPlusProcheVoisin)){
-        rearrangeHeap(&tasPlusProcheVoisin);
-        struct couple couple = popHeap(&tasPlusProcheVoisin);
-        parcours[parcoursCourant] = couple.sommet;
-        coutProcheVoisin += couple.poids;
+    while(!isEmptyHeap(&tasPlusProcheVoisin)){ //tant que la file de priorité n'est pas vide
+        rearrangeHeap(&tasPlusProcheVoisin); //tri partiel de la file
+        struct couple couple = popHeap(&tasPlusProcheVoisin); //on récupère le sommet prioritaire
+        parcours[parcoursCourant] = couple.sommet; //on met le sommet dans le parcours
+        coutProcheVoisin += couple.poids; //on ajoute le poids de l'arete au cout du parcours
 
-        //mise à jour des poids des aretes
+        //mise à jour des poids des aretes par rapport au nouveau dernier sommet du parcours
         updateWeights(&tasPlusProcheVoisin, graphe, parcours[parcoursCourant]);
         parcoursCourant ++;
     }
@@ -252,15 +252,15 @@ void solution_plus_petit_detour(struct graph* graphe){
         }
 
         //crée la tournée à deux sommets
+        //parcours stocké dans une liste chainée car beaucoup d'insertions au milieu
         struct list tournee = createList();
         addNode(&tournee, sommet1, 0);
         addNode(&tournee, sommet2, 0);
         float coutPetitDetour = poids(graphe, sommet1, sommet2);
-        //printf(listToString(&tournee));
 
         struct arete aretes[nbSommets];//tableau qui va contenir les aretes correspondant au poids de chaque sommet du tas
 
-        //on met les sommets pas encore dans la tournée dans un tas
+        //on met les sommets pas encore dans la tournée dans un tas (1ere iteration)
         for(i=0; i<nbSommets; i++){
             if(i != sommet1 && i != sommet2){ //si le sommet n'est pas encore dans la tournee
 
@@ -298,7 +298,7 @@ void solution_plus_petit_detour(struct graph* graphe){
                 pushHeap(&tasPlusPetitDetour, i, cout_detour_min);
             }
         }
-        rearrangeHeap(&tasPlusPetitDetour);
+        rearrangeHeap(&tasPlusPetitDetour); //tri partiel du tas
 
         //printf(listToString(&tournee));
 
@@ -310,7 +310,7 @@ void solution_plus_petit_detour(struct graph* graphe){
             struct list_node* node = malloc(sizeof(struct list_node));
             struct couple c = popHeap(&tasPlusPetitDetour);
             node->state = c.sommet;
-            node->poids = 0;
+            node->poids = 0; //parce que OSEF
             struct list_node* walk = tournee.first;
             while(walk->next->state != aretes[node->state].sommetB){
                 walk = walk->next;
@@ -321,7 +321,7 @@ void solution_plus_petit_detour(struct graph* graphe){
 
             //printf(listToString(&tournee));
 
-            //mettre à jour les poids
+            //mettre à jour les poids avec le poids minimum
             for(i=0; i<tasPlusPetitDetour.size; i++){ //pour tous les sommets du tas
                 walk = tournee.first;
                 float cout_detour_min = poids(graphe, tasPlusPetitDetour.sommets[i], tournee.first->state)
@@ -379,7 +379,7 @@ void solution_ARPM(struct graph* graphe){
 
     //choisir un sommet
     int sommetsArbre[nbSommets];
-    sommetsArbre[0] = 0;
+    sommetsArbre[0] = 0; //on met le sommet 0 comme racine
     int nbSommetsArbre = 1;
 
     //faire un tas avec les autres, leur poids est le poids entre chacun d'eux et le sommet initial 0
@@ -391,10 +391,10 @@ void solution_ARPM(struct graph* graphe){
 
     //faire l'ARPM
     while(!isEmptyHeap(&tas)) {
-        for (i = 0; i < tas.size; i++) {
-            int sommetTas = tas.sommets[i];
+        for (i = 0; i < tas.size; i++) { //pour tous les sommets du tas
+            int sommetTas = tas.sommets[i]; //sommet actuel
             //printf("Sommet tas : %d\n", sommetTas);
-            //faire le minimum temporaire
+            //faire le minimum temporaire entre sommet du tas et sommet de l'arbre
             int sommetArbreMin = sommetsArbre[0];
             float min = poids(graphe, sommetTas, sommetArbreMin);
             //printf("DEFAULT sommet arbre : %d ; poids = %f\n", sommetArbreMin, min);
@@ -434,7 +434,7 @@ void solution_ARPM(struct graph* graphe){
     for(i=1; i<nbSommets; i++){
         cout += poids(graphe, parcoursDfs[i-1], parcoursDfs[i]);
     }
-    printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme de l'ARPM a pour cout %f et est : ", cout);
+    printf("Le circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme de l'ARPM a pour cout %f et est : ", cout);
     printTab(parcoursDfs, nbSommets, 1);
 }
 
@@ -460,7 +460,7 @@ void solution_christofides(struct graph* graphe){
     }
 
     //faire l'ARPM
-    while(!isEmptyHeap(&tas)) {
+    while(!isEmptyHeap(&tas)){
         for (i = 0; i < tas.size; i++) {
             int sommetTas = tas.sommets[i];
             //printf("Sommet tas : %d\n", sommetTas);
@@ -499,7 +499,7 @@ void solution_christofides(struct graph* graphe){
     int impairs[nbSommets];
     int nbSommetsDegreImpair = 0;
     for(i=0; i<nbSommets; i++){
-        if(listSize(&graphe->listesAdjacences[i]) % 2 == 1){
+        if(listSize(&arpm.listesAdjacences[i]) % 2 == 0){ //parce qu'il y a -1 à la fin de la liste d'adjacence
             impairs[nbSommetsDegreImpair] = i;
             nbSommetsDegreImpair ++;
         }
@@ -508,12 +508,69 @@ void solution_christofides(struct graph* graphe){
     //on fait le couplage de poids minimum
     int tailleTab = nbSommetsDegreImpair*factorielle(nbSommetsDegreImpair);
     int tab[tailleTab]; //tableau des parcours possibles
-    //effectue(nbSommetsDegreImpair, tab);
+    effectue(nbSommetsDegreImpair, tab);
 
+    //printf("\n Les couplages possibles :\n");
     //printTab(tab, tailleTab, nbSommetsDegreImpair);
 
-    //printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme de Christofides a pour cout %f et est : ", cout);
-    //printTab(parcours, nbSommets, 1);
+    //calcul des poids des couplages
+    float couts[factorielle(nbSommetsDegreImpair)];
+    for(i=0; i<factorielle(nbSommetsDegreImpair); i++){
+        couts[i] = 0;
+    }
+    int indice = 0;
+    for(i=0; i<nbSommetsDegreImpair*factorielle(nbSommetsDegreImpair); i+=nbSommetsDegreImpair){
+        //printf("i = %d\n", i);
+        float cout = 0;
+        int j;
+        //printf("\n");
+        for(j=1; j<nbSommetsDegreImpair; j+=2){
+            cout += poids(graphe, tab[i+j-1], tab[i+j]);
+            //printf("Cout ajout de %d à %d : %f\n", tab[i+j-1], tab[i+j], poids(graphe, tab[i+j-1], tab[i+j]));
+        }
+        couts[indice] = cout;
+        //printf("Cout du couplage = %f in couts @ %d\n", cout, indice);
+        for(j=0; j<factorielle(nbSommetsDegreImpair); j++){
+            //printf("%f, ", couts[j]);
+        }
+        //printf("\n");
+        indice ++;
+    }
+
+    /*printf("\n Les poids des couplages :\n");
+    for(i=0; i<factorielle(nbSommetsDegreImpair); i++){
+        printf("%f, ", couts[i]);
+    }
+    printf("\n");*/
+
+
+    int coutMinIndex = 0;
+    float coutMin = couts[0];
+    for(i=1; i<factorielle(nbSommetsDegreImpair); i++){
+        if(couts[i] < coutMin){
+            coutMin = couts[i];
+            coutMinIndex = i;
+        }
+    }
+
+    for(i=coutMinIndex*nbSommetsDegreImpair+1; i<coutMinIndex*nbSommetsDegreImpair+nbSommetsDegreImpair; i+=2){
+        addNode(&arpm.listesAdjacences[tab[i-1]], tab[i], 0);
+        addNode(&arpm.listesAdjacences[tab[i]], tab[i-1], 0);
+        //printf("Couplage %d-%d\n", tab[i-1], tab[i]);
+    }
+
+    //printGraphe(&arpm, stdout);
+
+    int parcoursDfs[nbSommets];
+    dfsb(&arpm, 0, parcoursDfs);
+
+    float cout = 0;
+    for(i=1; i<nbSommets; i++){
+        cout += poids(graphe, parcoursDfs[i-1], parcoursDfs[i]);
+    }
+
+    printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme de Christofides a pour cout %f et est : ", cout);
+    printTab(parcoursDfs, nbSommets, 1);
 }
 
 

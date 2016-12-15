@@ -89,15 +89,14 @@ int right_child(int elem){
     return 2 * (elem + 1);
 }
 
+//fonction entasser
 void heapUp(struct heap* self, int elem){
     int l = left_child(elem);
     int r = right_child(elem);
     int min = elem;
-    //if(l < self->size && self->tab[l].elem[1] < self->tab[elem].elem[1]){
     if(l < self->size && self->poids[self->sommets[l]] < self->poids[self->sommets[elem]]){
         min = l;
     }
-    //if(r < self->size && self->tab[r].elem[1] < self->tab[min].elem[1]){
     if(r < self->size && self->poids[self->sommets[r]] < self->poids[self->sommets[min]]){
         min = r;
     }
@@ -109,7 +108,7 @@ void heapUp(struct heap* self, int elem){
 
 void rearrangeHeap(struct heap* self){
     int i;
-    for(i = ((self->size)/2)-1; i>=0; i--){ //revoir le /2 pour coller avec le commençage de l'indexage à 0
+    for(i = ((self->size)/2)-1; i>=0; i--){
         heapUp(self, i);
     }
 }
