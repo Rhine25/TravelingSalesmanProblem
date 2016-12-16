@@ -257,6 +257,7 @@ void solution_plus_petit_detour(struct graph* graphe){
         addNode(&tournee, sommet1, 0);
         addNode(&tournee, sommet2, 0);
         float coutPetitDetour = poids(graphe, sommet1, sommet2);
+        //printf("Arete plus grande = %d %d\n", sommet1, sommet2);
 
         struct arete aretes[nbSommets];//tableau qui va contenir les aretes correspondant au poids de chaque sommet du tas
 
@@ -360,7 +361,15 @@ void solution_plus_petit_detour(struct graph* graphe){
 
         printf("\nLe circuit hamiltonien approximativement optimal pour ce graphe avec l'algorithme du plus petit détour a pour cout %f et est : ", coutPetitDetour);
         //TODO revoir le cout donné ici qui ne parait pas correct (avec 6 5)
-        printf(listToString(&tournee));
+        int parcours[nbSommets];
+        struct list_node* walk = tournee.first;
+        i = 0;
+        while(walk->next != NULL){
+            parcours[i] = walk->state;
+            walk = walk->next;
+            i++;
+        }
+        printTab(parcours, nbSommets, 1);
 
         destroyList(&tournee);
         destroyHeap(&tasPlusPetitDetour);
@@ -510,8 +519,15 @@ void solution_christofides(struct graph* graphe){
     int tab[tailleTab]; //tableau des parcours possibles
     effectue(nbSommetsDegreImpair, tab);
 
-    //printf("\n Les couplages possibles :\n");
-    //printTab(tab, tailleTab, nbSommetsDegreImpair);
+    printf("\n Les couplages possibles :\n");
+    printTab(tab, tailleTab, nbSommetsDegreImpair);
+    printf("Les sommets impairs : \n");
+    printTab(impairs, nbSommetsDegreImpair, nbSommetsDegreImpair);
+
+    /*int l;
+    for(l=0; l<tailleTab; l++){
+        tab[l] = impairs[l];
+    }*/
 
     //calcul des poids des couplages
     float couts[factorielle(nbSommetsDegreImpair)];
@@ -537,11 +553,11 @@ void solution_christofides(struct graph* graphe){
         indice ++;
     }
 
-    /*printf("\n Les poids des couplages :\n");
+    printf("\n Les poids des couplages :\n");
     for(i=0; i<factorielle(nbSommetsDegreImpair); i++){
         printf("%f, ", couts[i]);
     }
-    printf("\n");*/
+    printf("\n");
 
 
     int coutMinIndex = 0;
@@ -556,7 +572,7 @@ void solution_christofides(struct graph* graphe){
     for(i=coutMinIndex*nbSommetsDegreImpair+1; i<coutMinIndex*nbSommetsDegreImpair+nbSommetsDegreImpair; i+=2){
         addNode(&arpm.listesAdjacences[tab[i-1]], tab[i], 0);
         addNode(&arpm.listesAdjacences[tab[i]], tab[i-1], 0);
-        //printf("Couplage %d-%d\n", tab[i-1], tab[i]);
+        printf("Couplage %d-%d\n", tab[i-1], tab[i]);
     }
 
     //printGraphe(&arpm, stdout);
